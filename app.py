@@ -78,10 +78,7 @@ class UrbanGenerator(nn.Module):
         return self.final(torch.cat([u4, d1], dim=1))
 
 # =========================================================================
-# ⚙️ SECURE DIRECT HYBRID VECTOR MODEL INGESTION (BYPASSES ALL FILE SIZE LIMITS)
-# =========================================================================
-# =========================================================================
-# ⚙️ SECURE DIRECT HYBRID VECTOR MODEL INGESTION (PUBLIC LIVE DIRECT CORRIDOR)
+# ⚙️ SECURE HARDWARE CLOUD WEIGHTS INGESTION WITH TOKEN AUTHENTICATION
 # =========================================================================
 device = torch.device("cpu")
 
@@ -92,27 +89,30 @@ def load_ai_model():
     checkpoint_path = "saved_models/generator_epoch_8.pth"
     
     if not os.path.exists(checkpoint_path):
-        with st.spinner("📥 Securing deep learning network weights from server (~40MB)... This happens only once."):
-            # 🚀 FIXED: Pointed to a public, zero-lock direct download channel to completely stop the error loop
-            download_url = "https://github.com"
-            
-            import requests
-            headers = {"User-Agent": "Mozilla/5.0"}
-            response = requests.get(download_url, headers=headers, stream=True)
-            if response.status_code == 200:
-                with open(checkpoint_path, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk:
-                            f.write(chunk)
-            else:
-                st.error(f"❌ Server connection failed. Status Code: {response.status_code}")
+        os.makedirs("saved_models", exist_ok=True)
+        with st.spinner("📥 Securely streaming network weights from Hugging Face... Please wait."):
+            try:
+                from huggingface_hub import hf_hub_download
+                
+                # FIXED: Uses native hf_hub_download with programmatic token authorization
+                downloaded_file = hf_hub_download(
+                    repo_id="rimurutempest56/ai-urban-planner-pbf",
+                    filename="generator_epoch_8.pth",
+                    token="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"  # Programmatic handshake read token
+                )
+                
+                import shutil
+                shutil.copy(downloaded_file, checkpoint_path)
+                
+            except Exception as e:
+                st.error(f"❌ Cloud retrieval failed: {e}")
                             
     if os.path.exists(checkpoint_path):
         try:
-            # weights_only=False bypasses PyTorch default security blocks cleanly since it's a trusted source
+            # weights_only=False bypasses PyTorch 2.6 security locks cleanly since it's a trusted source
             model.load_state_dict(torch.load(checkpoint_path, map_location=device, weights_only=False))
         except Exception as e:
-            st.error(f"❌ Error initializing model weights: {e}")
+            st.error(f"❌ Error loading model weights: {e}")
             if os.path.exists(checkpoint_path):
                 os.remove(checkpoint_path)
                 
@@ -120,7 +120,6 @@ def load_ai_model():
     return model
 
 net_G = load_ai_model()
-
 
 # =========================================================================
 # USER UPLOAD PANEL FILE IMAGE INGESTION LAYER
@@ -148,7 +147,7 @@ if uploaded_file is not None:
         output_display = (generated_tensor.squeeze(0).cpu() + 1.0) / 2.0
         output_np = (output_display.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
         
-        # 2. FIXED VISUALS: INJECT HIGH-CONTRARAST ARCHITECTURAL ROAD OVERLAYS
+        # 2. FIXED VISUALS: INJECT HIGH-CONTRAST ARCHITECTURAL ROAD OVERLAYS
         gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         edges = cv2.Canny(blurred, 40, 120)
