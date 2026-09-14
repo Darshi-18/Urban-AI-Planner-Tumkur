@@ -154,10 +154,8 @@ if uploaded_file is not None:
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
     
     green_ratio = int((np.sum(smooth_green > 100) / (h * w)) * 100)
-    if len(edge_x) > 0:
-        infrastructure_km = int(np.sum(edges == 255) / 110)
-    else:
-        infrastructure_km = 0
+    infrastructure_km = int(np.sum(edges == 255) / 110) if len(edge_x) > 0 else 0
+    
     with m_col1:
         st.markdown(f"<div class='metric-panel'><div class='metric-value'>{res_count:,}</div><div class='metric-label'>🏡 Planned Dwellings</div></div>", unsafe_allow_html=True)
     with m_col2:
