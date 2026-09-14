@@ -163,7 +163,7 @@ if uploaded_file is not None:
     with m_col3:
         st.markdown(f"<div class='metric-panel'><div class='metric-value'>{green_ratio}%</div><div class='metric-label'>🌿 Eco-Preservation Ratio</div></div>", unsafe_allow_html=True)
     with m_col4:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{infrastructure_km} km</div><div class='metric-label'></div>🛣️ Total Planned Roads</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{infrastructure_km} km</div><div class='metric-label'>🛣️ Total Planned Roads</div></div>", unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
     
