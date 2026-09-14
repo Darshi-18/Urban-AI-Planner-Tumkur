@@ -80,6 +80,9 @@ class UrbanGenerator(nn.Module):
 # =========================================================================
 # ⚙️ SECURE HARDWARE CLOUD WEIGHTS INGESTION WITH TOKEN AUTHENTICATION
 # =========================================================================
+# =========================================================================
+# ⚙️ SECURE HARDWARE CLOUD WEIGHTS INGESTION VIA STREAMLIT SECRETS
+# =========================================================================
 device = torch.device("cpu")
 
 @st.cache_resource
@@ -89,21 +92,22 @@ def load_ai_model():
     checkpoint_path = "saved_models/generator_epoch_8.pth"
     
     if not os.path.exists(checkpoint_path):
-        os.makedirs("saved_models", exist_ok=True)
-        with st.spinner("📥 Securely streaming network weights from Hugging Face... Please wait."):
+        with st.spinner("📥 Securely streaming network weights from server (~40MB)... Please wait."):
             try:
-                from huggingface_hub import hf_hub_download
+                # Reads the unrestricted direct link safely from the back-end secrets vault
+                download_url = st.secrets["WEIGHTS_URL"]
                 
-                # FIXED: Uses native hf_hub_download with programmatic token authorization
-                downloaded_file = hf_hub_download(
-                    repo_id="rimurutempest56/ai-urban-planner-pbf",
-                    filename="generator_epoch_8.pth",
-                    token="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"  # Programmatic handshake read token
-                )
+                import requests
+                headers = {"User-Agent": "Mozilla/5.0"}
+                response = requests.get(download_url, headers=headers, stream=True)
                 
-                import shutil
-                shutil.copy(downloaded_file, checkpoint_path)
-                
+                if response.status_code == 200:
+                    with open(checkpoint_path, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                else:
+                    st.error(f"❌ Server connection failed. Status Code: {response.status_code}")
             except Exception as e:
                 st.error(f"❌ Cloud retrieval failed: {e}")
                             
@@ -120,6 +124,7 @@ def load_ai_model():
     return model
 
 net_G = load_ai_model()
+
 
 # =========================================================================
 # USER UPLOAD PANEL FILE IMAGE INGESTION LAYER
