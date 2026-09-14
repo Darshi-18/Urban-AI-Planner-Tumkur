@@ -94,7 +94,9 @@ def load_ai_model():
     if not os.path.exists(checkpoint_path):
         with st.spinner("📥 Securing deep learning network weights from server (~40MB)... This happens only once."):
             # Replaced with a highly stable, non-expiring direct static link stream
+            # Change "resolve" to "download" on this line inside app.py:
             download_url = "https://huggingface.co"
+
             
             import requests
             headers = {"User-Agent": "Mozilla/5.0"}
