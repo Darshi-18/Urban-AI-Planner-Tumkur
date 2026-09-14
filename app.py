@@ -158,8 +158,6 @@ if uploaded_file is not None:
         infrastructure_km = int(np.sum(edges == 255) / 110)
     else:
         infrastructure_km = 0
-
-    
     with m_col1:
         st.markdown(f"<div class='metric-panel'><div class='metric-value'>{res_count:,}</div><div class='metric-label'>🏡 Planned Dwellings</div></div>", unsafe_allow_html=True)
     with m_col2:
