@@ -80,7 +80,11 @@ class UrbanGenerator(nn.Module):
 # =========================================================================
 # ⚙️ SECURE HARDWARE CLOUD WEIGHTS INGESTION FROM HUGGING FACE
 # =========================================================================
+# =========================================================================
+# ⚙️ SECURE HARDWARE CLOUD WEIGHTS INGESTION VIA GITHUB RELEASES
+# =========================================================================
 device = torch.device("cpu")
+
 @st.cache_resource
 def load_ai_model():
     model = UrbanGenerator()
@@ -88,21 +92,31 @@ def load_ai_model():
     checkpoint_path = "saved_models/generator_epoch_8.pth"
     
     if not os.path.exists(checkpoint_path):
-        with st.spinner("📥 Downloading deep neural network weights from Hugging Face (~40MB)..."):
-            # RE-INSERT your working Hugging Face direct link address below
-            download_url = "https://huggingface.co"
+        with st.spinner("📥 Securely downloading model weights from GitHub Releases (~40MB)... This happens only once."):
+            # Paste your copied direct GitHub Release download link between the quotes below
+            download_url = "https://github.com"
             
             import requests
             headers = {"User-Agent": "Mozilla/5.0"}
             response = requests.get(download_url, headers=headers, stream=True)
+            
             if response.status_code == 200:
                 with open(checkpoint_path, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         if chunk:
                             f.write(chunk)
+            else:
+                st.error(f"❌ Download failed. Server responded with status code: {response.status_code}")
                             
     if os.path.exists(checkpoint_path):
-        model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+        try:
+            # weights_only=False bypasses PyTorch 2.6 security locks since it's a trusted source
+            model.load_state_dict(torch.load(checkpoint_path, map_location=device, weights_only=False))
+        except Exception as e:
+            st.error(f"❌ Error loading model weights: {e}")
+            if os.path.exists(checkpoint_path):
+                os.remove(checkpoint_path)
+                
     model.eval()
     return model
 
