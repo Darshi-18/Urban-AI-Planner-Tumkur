@@ -176,4 +176,4 @@ if uploaded_file is not None:
 
         # FIXED SYNTAX BLOCK: Closed all parentheses properly to prevent compilation crashes
         if comm_count > 0:
-            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (w // 3 - 60, 60), 
+            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (w // 3 - 60, 60))
