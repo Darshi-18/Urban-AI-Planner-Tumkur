@@ -174,6 +174,6 @@ if uploaded_file is not None:
         cv2.line(blueprint, (40, 26), (44, 32), (255, 255, 255), 2)
         cv2.putText(blueprint, "N", (35, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (255, 255, 255), 1, cv2.LINE_AA)
 
-        # Map text indicators placed securely on layout boundaries
+        # FIXED ANNOTATION PIPELINE: Guaranteed parameter strings to prevent OpenCV execution signature crashes
         if comm_count > 0:
-            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (120, 60))
+            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (120, 60), 
