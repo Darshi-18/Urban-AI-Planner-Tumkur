@@ -176,4 +176,4 @@ if uploaded_file is not None:
 
         # Map text indicators placed securely on layout boundaries
         if comm_count > 0:
-            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (120, 60), 
+            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (120, 60))
