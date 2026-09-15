@@ -4,190 +4,176 @@ import numpy as np
 from PIL import Image
 import os
 
-# 1. INITIALIZE MASTER COMMAND PORTAL CORE
+# 1. INITIALIZE MASTER PORTAL CONSOLE
 st.set_page_config(
-    page_title="UrbanAI Studio | Master Planning Suite", 
+    page_title="UrbanAI Studio | GIS Engineering Suite", 
     layout="wide", 
     initial_sidebar_state="expanded"
 )
 
-# 2. INJECT SLEEK MODERN DARK ARCHITECTURAL CORE THEME
+# 2. INJECT SLEEK DARK COMMAND MATRIX UI
 st.markdown("""
     <style>
-    .main { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .main { background-color: #0b132b; color: #edf2f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     div.stButton > button:first-child {
-        background-color: #0284c7; color: white; border-radius: 6px;
+        background-color: #3a86ff; color: white; border-radius: 4px;
         border: none; width: 100%; font-weight: bold; padding: 12px;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+        box-shadow: 0px 4px 10px rgba(58, 134, 255, 0.3);
     }
-    .stSlider > div > div > div > div { background-color: #0284c7; }
-    .stSelectbox div[data-baseweb="select"] { background-color: #1e293b; color: white; border-radius: 6px; }
+    .stSlider > div > div > div > div { background-color: #3a86ff; }
+    .stSelectbox div[data-baseweb="select"] { background-color: #1c2541; color: #edf2f4; border: 1px solid #3a86ff; }
     .metric-panel {
-        background-color: #1e293b; padding: 20px; border-radius: 8px;
-        border-top: 4px solid #38bdf8; text-align: center;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+        background-color: #1c2541; padding: 20px; border-radius: 6px;
+        border-top: 4px solid #3a86ff; text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.15);
     }
-    .metric-value { font-size: 28px; font-weight: 700; color: #38bdf8; }
-    .metric-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+    .metric-value { font-size: 28px; font-weight: 700; color: #4cc9f0; }
+    .metric-label { font-size: 11px; color: #b0c4de; text-transform: uppercase; margin-top: 4px; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🏗️ UrbanAI Studio™ — Generative City Blueprint Engine")
-st.markdown("An advanced spatial modeling framework for structured Greenfield Master Planning and autonomous topology zoning synthesis.")
+st.title("🏗️ UrbanAI Studio™ — GIS Master Planning Suite")
+st.markdown("`[SYSTEM PROTOCOL: MASTER REGIONAL DEVELOPMENT OVERLAY - MUDIGERE-BUGUDANAHALLI CORRIDOR]`")
 st.markdown("---")
 
 # =========================================================================
-# INTERACTIVE LAYOUT CONFIGURATION PANEL (SIDEBAR)
+# SYSTEM CONTROL SIDEBAR CONTROLLERS
 # =========================================================================
-st.sidebar.header("🎛️ ZONING DESIGN PROFILE")
-st.sidebar.markdown("Fine-tune generative urban density metrics below:")
+st.sidebar.header("📡 GIS ANALYSIS CONFIGURATION")
 
-sector_density = st.sidebar.selectbox("Target Sector Profile", ["Suburban Neighborhood Matrix", "High-Density Commercial Core", "Eco-Fringe Settlement"])
-preservation_idx = st.sidebar.slider("Environmental Protection Index", 80, 140, 115, 5)
-transit_hierarchy = st.sidebar.slider("Transit Arterial Sensitivity", 20, 80, 60, 5)
+sector_profile = st.sidebar.selectbox("Active Planning Preset", ["Suburban Neighborhood Matrix", "High-Density Core Matrix", "Eco-Fringe Settlement"])
+preservation_val = st.sidebar.slider("Eco Preservation Threshold", 80, 140, 110, 5)
+transit_val = st.sidebar.slider("Transit Extraction Sensitivity", 20, 80, 45, 5)
 
-# Calculate grid configurations relative to density presets
-b_size = 24
+b_size = 28
 b_gap = 10
-if sector_density == "High-Density Commercial Core":
-    b_size = 18
-    b_gap = 6
-if sector_density == "Eco-Fringe Settlement":
-    b_size = 34
-    b_gap = 16
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("**🎨 ARCHITECTURAL MAP KEY:**")
-st.sidebar.markdown("🟦 **Cobalt Blue:** Commercial Complex Footprints")
-st.sidebar.markdown("🟧 **Terracotta Red:** Residential House Footprints")
-st.sidebar.markdown("🟩 **Soft Sage Green:** Preserved Natural Buffers")
-st.sidebar.markdown("⬜ **Slate & Platinum:** Primary Transportation Lines")
+st.sidebar.markdown("**🎨 GEOSPATIAL MAP LEGEND:**")
+st.sidebar.markdown("🟪 **Deep Purple Line Grids:** High-Density Commercial Core")
+st.sidebar.markdown("🟦 **Slate Blue Matrix:** Medium-Density Residential Sectors")
+st.sidebar.markdown("🟩 **Lime & Sage Pasture:** Urban Agriculture & Greenbelts")
+st.sidebar.markdown("⬜ **Slate Casing / White Split:** Primary Arterial Transit Corridors")
 
 # =========================================================================
-# FILE INPUT HANDLING LAYER
+# GEOSPATIAL FILE INGESTION LAYERS
 # =========================================================================
-uploaded_file = st.file_uploader("Upload geographic aerial terrain snap (PNG/JPG)", type=["png", "jpg", "jpeg"])
+uploaded_file = st.file_uploader("UPLOAD GEOGRAPHIC AERIAL FOOTPRINT GRAPHIC (PNG/JPG)", type=["png", "jpg", "jpeg"])
 
 if uploaded_file is not None:
     raw_img = Image.open(uploaded_file).convert("RGB")
     img_np = np.array(raw_img)
-    h, w, c = img_np.shape
     
-    # Advanced Image Filtering Pipeline to isolate real highway corridors smoothly
-    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
-    blurred_heavy = cv2.GaussianBlur(gray, (15, 15), 0)
+    # Scale coordinates to protect UI container layout constraints
+    orig_h, orig_w, _ = img_np.shape
+    scale_factor = 700 / max(orig_h, orig_w)
+    new_h, new_w = int(orig_h * scale_factor), int(orig_w * scale_factor)
     
-    # Extract only the high-contrast prominent primary highway skeleton
-    edges = cv2.Canny(blurred_heavy, transit_hierarchy, transit_hierarchy * 2.2)
+    img_resized = cv2.resize(img_np, (new_w, new_h), interpolation=cv2.INTER_LANCZOS4)
+    h, w, c = img_resized.shape
+    
+    # Core Image Signal Filtering Processing Pipeline
+    gray = cv2.cvtColor(img_resized, cv2.COLOR_RGB2GRAY)
+    blurred = cv2.GaussianBlur(gray, (11, 11), 0)
+    
+    # Extract clean transportation network traces
+    edges = cv2.Canny(blurred, transit_val, transit_val * 2.5)
     edge_y, edge_x = np.where(edges == 255)
     
-    # Isolate large organic agricultural fields and environmental belts cleanly
-    _, green_mask = cv2.threshold(blurred_heavy, preservation_idx, 255, cv2.THRESH_BINARY_INV)
-    green_mask = cv2.dilate(green_mask, np.ones((13, 13), np.uint8), iterations=1)
-    smooth_green = cv2.GaussianBlur(green_mask, (35, 35), 0)
+    # Isolate vegetative agricultural land vs open buildable spaces
+    _, green_mask = cv2.threshold(blurred, preservation_val, 255, cv2.THRESH_BINARY_INV)
+    green_mask = cv2.dilate(green_mask, np.ones((9, 9), np.uint8), iterations=1)
+    smooth_green = cv2.GaussianBlur(green_mask, (25, 25), 0)
     
     # =========================================================================
-    # HIGH-FIDELITY ARCHITECTURAL BLUEPRINT RENDER ENGINE
+    # HIGH-FIDELITY VECTOR GIS BLUEPRINT RENDER ENGINE
     # =========================================================================
     with st.spinner("⚡ Running spatial matrix optimizations..."):
-        # Setup clean, elegant structural engineering paper-white canvas
+        # Setup modern architectural Blueprint Linen Canvas background
         blueprint = np.zeros((h, w, 3), dtype=np.uint8)
-        blueprint[:] = (245, 247, 250) 
+        blueprint[:] = (45, 52, 54) # Flat matte asphalt background slate
         
-        # 1. Map Preserved Eco-Green Zones (Smooth vector fields)
-        blueprint[smooth_green > 100] = (208, 240, 212) # Soft matte architectural green
+        # 1. Map Urban Agriculture & Greenbelts (Smooth pastel lime/sage green fields)
+        blueprint[smooth_green > 100] = (156, 204, 101) # Professional GIS Lime Green
         
         spacing = b_size + b_gap
         res_count = 0
         comm_count = 0
         
-        # Draw clean, structured zoning rows that adapt to the landscape rules
+        # 2. Generative Zoning Matrix Calculation Loops
         for y in range(40, h - spacing, spacing):
             for x in range(40, w - spacing, spacing):
                 
-                # Check proximity to the main primary road path
+                # Check proximity to the main primary road path corridors
                 if len(edge_x) > 0:
                     dist_to_transit = np.min(np.sqrt((edge_x - x)**2 + (edge_y - y)**2))
                 else:
                     dist_to_transit = 999.0
                     
-                # A. BUSINESS CORRIDORS: Plot detailed commercial complexes near the highway corridor
-                if dist_to_transit < 55:
-                    if x % 2 == 0 and y % 2 == 0:
-                        # Draw high-realism L-shaped architectural structural complexes
-                        cv2.rectangle(blueprint, (x, y), (x + b_size + 2, y + b_size - 4), (41, 128, 185), -1) 
-                        cv2.rectangle(blueprint, (x, y + b_size - 4), (x + b_size // 2, y + b_size + 2), (41, 128, 185), -1)
-                        # Add hyper-clean blueprint wireframe line borders
-                        cv2.rectangle(blueprint, (x, y), (x + b_size + 2, y + b_size - 4), (207, 226, 243), 1)
+                # If coordinate falls into buildable open land slots (Not forest)
+                if smooth_green[y + b_size//2, x + b_size//2] <= 100:
+                    
+                    # ZONE A: HIGHWAY CORRIDOR ACCESS -> High-Density Commercial Core (Deep Purple Hatch Grids)
+                    if dist_to_transit < 55:
+                        # Draw structural building lot boundary
+                        cv2.rectangle(blueprint, (x, y), (x + b_size, y + b_size), (94, 53, 177), -1) # Solid purple fill
+                        # Overlay fine technical grid lines inside the block to simulate structural lines
+                        for offset in range(0, b_size, 6):
+                            cv2.line(blueprint, (x + offset, y), (x, y + offset), (255, 255, 255), 1)
+                        cv2.rectangle(blueprint, (x, y), (x + b_size, y + b_size), (255, 255, 255), 1)
                         comm_count += 1
                         
-                # B. SUBDIVISION VALLEYS: Plot organized groups of houses separated by minor road lines
-                elif smooth_green[y + b_size // 2, x + b_size // 2] <= 100:
-                    # Render distinct property land parcel plot lines
-                    cv2.rectangle(blueprint, (x, y), (x + b_size, y + b_size), (209, 213, 219), 1)
-                    
-                    # Nest clear, terracotta orange house blueprints inside property borders
-                    h_dim = int(b_size * 0.6)
-                    cv2.rectangle(blueprint, (x + 2, y + 2), (x + h_dim, y + h_dim), (211, 84, 0), -1) 
-                    
-                    # Draw a fine access driveway line extending to the local street path
-                    cv2.line(blueprint, (x + h_dim, y + 4), (x + b_size, y + 4), (150, 150, 150), 1)
-                    res_count += 1
+                    # ZONE B: SUBDIVISION SECTORS -> Medium-Density Residential (Clean Slate Blue Grids)
+                    else:
+                        cv2.rectangle(blueprint, (x, y), (x + b_size, y + b_size), (58, 125, 160), -1) # Slate blue fill
+                        # Draw fine internal property subdivisions wireframes
+                        cv2.rectangle(blueprint, (x + 2, y + 2), (x + b_size//2 - 1, y + b_size//2 - 1), (255, 255, 255), 1)
+                        cv2.rectangle(blueprint, (x + b_size//2 + 1, y + 2), (x + b_size - 2, y + b_size//2 - 1), (255, 255, 255), 1)
+                        cv2.rectangle(blueprint, (x + 2, y + b_size//2 + 1), (x + b_size//2 - 1, y + b_size - 2), (255, 255, 255), 1)
+                        cv2.rectangle(blueprint, (x + b_size//2 + 1, y + b_size//2 + 1), (x + b_size - 2, y + b_size - 2), (255, 255, 255), 1)
+                        res_count += 1
 
-        # 4. TRANSPORTATION NETWORKS SUPERIMPOSITION
-        # Draw thin, elegant local sector collector streets dividing the blocks naturally
+        # 3. SUPERIMPOSE PROFESSIONAL HIGH-CONTRAST TRANSIT NETWORK CORRIDORS
+        # Draw clean white local collector street lines separating structural zones natively
         for y_line in range(0, h, spacing * 3):
-            cv2.line(blueprint, (0, y_line), (w, y_line), (255, 255, 255), 2)
+            cv2.line(blueprint, (0, y_line), (w, y_line), (236, 240, 241), 1)
         for x_line in range(0, w, spacing * 3):
-            cv2.line(blueprint, (x_line, 0), (x_line, h), (255, 255, 255), 2)
+            cv2.line(blueprint, (x_line, 0), (x_line, h), (236, 240, 241), 1)
             
-        # Draw the major transit infrastructure highway bed cleanly on top
+        # Draw primary arterial double-lined transit routes
         if len(edge_x) > 0:
-            road_casing = cv2.dilate(edges, np.ones((7, 7), np.uint8), iterations=1)
-            blueprint[road_casing == 255] = (74, 85, 104)   # Slate-grey asphalt layer
-            blueprint[edges == 255] = (255, 255, 255)       # High-visibility white street divider lines
+            road_casing = cv2.dilate(edges, np.ones((9, 9), np.uint8), iterations=1)
+            blueprint[road_casing == 255] = (44, 62, 80)    # Deep slate outer road pad
+            road_core = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
+            blueprint[road_core == 255] = (255, 255, 255)   # Crisp double white lines
+            blueprint[edges == 255] = (44, 62, 80)          # Clean interior divider center gap
+            
+        # 4. INJECT EXAMINER GRADE MAP TITLE BLOCK & DATA CORRIDOR LABELS
+        # Draw a clean technical box border around the entire canvas layout area
+        cv2.rectangle(blueprint, (5, 5), (w - 5, h - 5), (255, 255, 255), 2)
         
-    # =========================================================================
-    # LIVE COMPUTATIONAL METRICS DASHBOARD
-    # =========================================================================
-    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-    
-    green_ratio = int((np.sum(smooth_green > 100) / (h * w)) * 100)
-    infrastructure_km = int(np.sum(edges == 255) / 110) if len(edge_x) > 0 else 0
-    
-    with m_col1:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{res_count:,}</div><div class='metric-label'>🏡 Planned Dwellings</div></div>", unsafe_allow_html=True)
-    with m_col2:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{comm_count}</div><div class='metric-label'>🏢 Commercial Zones</div></div>", unsafe_allow_html=True)
-    with m_col3:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{green_ratio}%</div><div class='metric-label'>🌿 Eco-Preservation Ratio</div></div>", unsafe_allow_html=True)
-    with m_col4:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{infrastructure_km} km</div><div class='metric-label'>🛣️ Total Planned Roads</div></div>", unsafe_allow_html=True)
+        # Draw the standard professional Title Block box card in the lower right corner
+        tb_w, tb_h = 280, 100
+        cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (30, 39, 46), -1)
+        cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (255, 255, 255), 2)
         
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # =========================================================================
-    # SIDE-BY-SIDE PLATFORM DISPLAY COLUMNS
-    # =========================================================================
-    ui_col1, ui_col2 = st.columns(2)
-    
-    with ui_col1:
-        st.subheader("🛰️ Input Terrain Capture")
-        st.image(img_np, use_container_width=True)
+        # Inject structural text definitions inside the card
+        cv2.putText(blueprint, "MUDIGERE-BUGUDANAHALLI", (w - tb_w + 12, h - tb_h + 25), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+        cv2.putText(blueprint, "REGIONAL DEVELOPMENT PLAN", (w - tb_w + 12, h - tb_h + 45), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.38, (255, 255, 255), 1, cv2.LINE_AA)
+        cv2.putText(blueprint, "SCALE: 1:25,000", (w - tb_w + 12, h - tb_h + 68), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.35, (180, 180, 180), 1, cv2.LINE_AA)
+        cv2.putText(blueprint, "PROJECT CORE: UrbanAI V5.0", (w - tb_w + 12, h - tb_h + 85), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.32, (0, 240, 255), 1, cv2.LINE_AA)
         
-    with ui_col2:
-        st.subheader(" Master Plan Grid Blueprint")
-        st.image(blueprint, use_container_width=True)
-        
-    # FILE EXPORTER UTILITY
-    final_output_image = Image.fromarray(blueprint)
-    final_output_image.save("urbanai_masterplan.png")
-    with open("urbanai_masterplan.png", "rb") as file:
-        st.download_button(
-            label="📥 Export High-Resolution Presentation Blueprint",
-            data=file,
-            file_name="urbanai_masterplan.png",
-            mime="image/png"
-        )
-else:
-    st.info("ℹ️ System standby. Please upload geographic satellite terrain imagery to initiate the planning pipeline.")
+        # Draw a clean North Arrow Compass indicator symbol in the upper left corner
+        cv2.circle(blueprint, (40, 40), 18, (255, 255, 255), 1)
+        cv2.line(blueprint, (40, 48), (40, 26), (255, 255, 255), 2)
+        cv2.line(blueprint, (40, 26), (36, 32), (255, 255, 255), 2)
+        cv2.line(blueprint, (40, 26), (44, 32), (255, 255, 255), 2)
+        cv2.putText(blueprint, "N", (35, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (255, 255, 255), 1, cv2.LINE_AA)
+
+        # Draw map sector indicators cleanly on the layout surfaces
+        if comm_count > 0:
+            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (w // 3 - 60, 60), 
