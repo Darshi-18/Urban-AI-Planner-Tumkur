@@ -65,7 +65,7 @@ if uploaded_file is not None:
     # 🌟 CORE FIX: LOAD TARGET GIS PLAN DIRECTLY FOR presentation PRESENTATION
     # -------------------------------------------------------------------------
     # System checks for the target design layer inside the repo directory
-    target_plan_path = "gis_regional_masterplan.png"
+    target_plan_path = "gis_regional_masterplan.jpg"
     
     # Render fallback metrics for display authenticity
     with st.spinner("⚡ Running regional spatial optimizations..."):
