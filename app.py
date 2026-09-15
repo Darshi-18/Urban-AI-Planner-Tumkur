@@ -178,4 +178,4 @@ if uploaded_file is not None:
     final_output_image = Image.fromarray(blueprint)
     final_output_image.save("gis_regional_masterplan.jpg")
     with open("gis_regional_masterplan.jpg", "rb") as file:
-        st.download_button(
+        st.download_button()
