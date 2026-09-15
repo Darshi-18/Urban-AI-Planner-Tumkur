@@ -98,15 +98,12 @@ if uploaded_file is not None:
             ref_map = cv2.cvtColor(ref_map, cv2.COLOR_BGR2RGB)
             ref_resized = cv2.resize(ref_map, (w, h), interpolation=cv2.INTER_LANCZOS4)
             
-            # Reconstruct layout features matching your reference structure
             blueprint_np = ref_resized.copy()
             
-            # Apply real-time segment clipping: Warp greenbelts matching the CURRENT uploaded fields
+            # FIXED: Using a safe, vectorized NumPy blend loop to prevent OpenCV structure errors
             green_indices = smooth_green > 100
-            blueprint_np[green_indices] = cv2.addWeighted(
-                ref_resized[green_indices], 0.35, 
-                np.array([156, 204, 101], dtype=np.uint8), 0.65, 0
-            )
+            target_color = np.array([156, 204, 101], dtype=np.uint8)
+            blueprint_np[green_indices] = (ref_resized[green_indices] * 0.4 + target_color * 0.6).astype(np.uint8)
             
             # Superimpose active high-contrast transit casing paths matching the input image
             edge_y, edge_x = np.where(edges == 255)
@@ -147,11 +144,11 @@ if uploaded_file is not None:
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
     
     with m_col1:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{res_count:,}</div><div class='metric-label'>🏡 Planned Dwellings</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{res_count:,}</div><div class='metric-label'> Planned Dwellings</div></div>", unsafe_allow_html=True)
     with m_col2:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{comm_count} Blocks</div><div class='metric-label'>🏢 Commercial Hubs</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{comm_count} Blocks</div><div class='metric-label'> Commercial Hubs</div></div>", unsafe_allow_html=True)
     with m_col3:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{green_ratio}%</div><div class='metric-label'>🌿 Greenbelt Coverage</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{green_ratio}%</div><div class='metric-label'> Greenbelt Coverage</div></div>", unsafe_allow_html=True)
     with m_col4:
         st.markdown(f"<div class='metric-panel'><div class='metric-value'>{infrastructure_km} km</div><div class='metric-label'>🛣️ Primary Highway Route</div></div>", unsafe_allow_html=True)
         
@@ -163,13 +160,12 @@ if uploaded_file is not None:
     ui_col1, ui_col2 = st.columns(2)
     
     with ui_col1:
-        st.subheader("🛰️ Input Satellite Imagery Capture")
+        st.subheader(" Input Satellite Imagery Capture")
         st.image(img_resized, use_container_width=True)
         
     with ui_col2:
         st.subheader("🗺️ Synthesized Regional Development Layout")
         if final_blueprint_img is not None:
-            # Random seed string acts as a cache-buster forcing instant browser redraw loops
             st.image(final_blueprint_img, use_container_width=True)
             
     # FILE EXPORTER MANAGER LINK CONTROL
@@ -179,5 +175,7 @@ if uploaded_file is not None:
                 label="📥 Export Engineering-Grade GIS Blueprint Plan",
                 data=file,
                 file_name="gis_regional_masterplan.jpg",
-                mime="image/jpeg")
-                
+                mime="image/jpeg"
+            )
+else:
+    st.info("ℹ️ System standby. Please upload geographic satellite terrain imagery to initiate the planning pipeline.")
