@@ -138,7 +138,7 @@ with st.spinner("⚡ Running spatial matrix optimizations..."):
         cv2.putText(blueprint, "URBAN AGRICULTURE AND GREEN BELT", (60, h // 2 + 60), cv2.FONT_HERSHEY_SIMPLEX, 0.36, (44, 62, 80), 1, cv2.LINE_AA)
 
 # =========================================================================
-# REAL-TIME COMPACT DATA MATRIX DASHBOARD PANELS (ZERO TRUNCATION)
+# REAL-TIME COMPACT DATA MATRIX DASHBOARD PANELS
 # =========================================================================
 cols = st.columns(4)
 metrics = [
@@ -154,14 +154,17 @@ for i, (val, lbl) in enumerate(metrics):
 st.markdown("<br>", unsafe_allow_html=True)
 
 # =========================================================================
-# SIDE-BY-SIDE PLATFORM DISPLAY VIEWGRID
+# FIXED: SIDE-BY-SIDE PLATFORM DISPLAY VIEWGRID USING VALID INDEXES
 # =========================================================================
 ui_cols = st.columns(2)
-ui_cols[0].subheader("🛰️ Input Satellite Imagery Capture")
-ui_cols[0].image(img_resized, use_container_width=True)
 
-ui_cols[1].subheader("🗺️ Synthesized Regional Development Layout")
-ui_cols[1].image(blueprint, use_container_width=True)
+with ui_cols[0]:
+    st.subheader("🛰 *Input Satellite Imagery Capture*")
+    st.image(img_resized, use_container_width=True)
+
+with ui_cols[1]:
+    st.subheader("🗺 *Synthesized Regional Development Layout*")
+    st.image(blueprint, use_container_width=True)
 
 # FILE EXPORTER MANAGER CONTROL UTILITY LINK
 final_output_image = Image.fromarray(blueprint)
