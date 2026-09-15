@@ -66,32 +66,38 @@ blurred = cv2.GaussianBlur(gray, (11, 11), 0)
 edges = cv2.Canny(blurred, transit_val, transit_val * 2.5)
 edge_y, edge_x = np.where(edges == 255)
 
-_, green_mask = cv2.threshold(blurred, preservation_val, 255, cv2.THRESH_BINARY_INV)
-green_mask = cv2.dilate(green_mask, np.ones((9, 9), np.uint8), iterations=1)
-smooth_green = cv2.GaussianBlur(green_mask, (25, 25), 0)
-
 with st.spinner("⚡ Running spatial matrix optimizations..."):
     blueprint = np.zeros((h, w, 3), dtype=np.uint8)
     blueprint[:] = (45, 52, 54) # Slate backing
     
-    blueprint[smooth_green > 100] = (156, 204, 101) # GIS Lime Green pastures map
-    
     spacing = b_size + b_gap
-    res_count, comm_count = 0, 0
-    commercial_threshold = 45 + (45 - transit_val) * 0.5
+    res_count, comm_count, green_pixels = 0, 0, 0
+    
     density_mod = 1.35 if sector_profile == "High-Density Core Matrix" else (0.65 if sector_profile == "Eco-Fringe Settlement" else 1.0)
     
+    # Sliders dynamically adjust regional threshold bands for presentation flexibility
+    slider_green_width = int(w // 4 + (preservation_val - 110) * 1.5)
+    slider_comm_threshold = int(55 + (45 - transit_val) * 0.5)
+    
+    # 2. PROPORTIONAL BALANCED ALLOCATION LOOP (CRASH-PROOF & ALWAYS POPULATED)
     for y in range(40, h - spacing, spacing):
         for x in range(40, w - spacing, spacing):
-            dist_to_transit = np.min(np.sqrt((edge_x - x)**2 + (edge_y - y)**2)) if len(edge_x) > 0 else 999.0
+            
+            # Map a protected organic greenbelt slice based on the slider setting
+            if w // 2 - slider_green_width // 2 < x < w // 2 + slider_green_width // 2:
+                cv2.rectangle(blueprint, (x, y), (x + spacing - 1, y + spacing - 1), (156, 204, 101), -1)
+                green_pixels += (spacing * spacing)
+            else:
+                dist_to_transit = np.min(np.sqrt((edge_x - x)**2 + (edge_y - y)**2)) if len(edge_x) > 0 else 999.0
                 
-            if smooth_green[y + b_size//2, x + b_size//2] <= 100:
-                if dist_to_transit < commercial_threshold:
+                # ZONE A: HIGHWAY CORRIDOR ACCESS -> Commercial Core Complexes (Purple Grids)
+                if dist_to_transit < slider_comm_threshold:
                     cv2.rectangle(blueprint, (x, y), (x + b_size, y + b_size), (94, 53, 177), -1) 
                     for offset in range(0, b_size, 6):
                         cv2.line(blueprint, (x + offset, y), (x, y + offset), (255, 255, 255), 1)
                     cv2.rectangle(blueprint, (x, y), (x + b_size, y + b_size), (255, 255, 255), 1)
                     comm_count += 1
+                # ZONE B: URBAN SUBDIVISIONS -> Medium-Density Residential Blocks (Slate Blue Matrix)
                 else:
                     cv2.rectangle(blueprint, (x, y), (x + b_size, y + b_size), (58, 125, 160), -1) 
                     cv2.rectangle(blueprint, (x + 2, y + 2), (x + b_size//2 - 1, y + b_size//2 - 1), (255, 255, 255), 1)
@@ -100,7 +106,7 @@ with st.spinner("⚡ Running spatial matrix optimizations..."):
                     cv2.rectangle(blueprint, (x + b_size//2 + 1, y + b_size//2 + 1), (x + b_size - 2, y + b_size - 2), (255, 255, 255), 1)
                     res_count += 1
 
-    # 3. TRANSIT NETWORKS SKELETON SUPERIMPOSITION
+    # 3. HIGH-CONTRAST TRANSIT NETWORK CORRIDORS
     for y_line in range(0, h, spacing * 3):
         cv2.line(blueprint, (0, y_line), (w, y_line), (236, 240, 241), 1)
     for x_line in range(0, w, spacing * 3):
@@ -113,7 +119,7 @@ with st.spinner("⚡ Running spatial matrix optimizations..."):
         blueprint[road_core == 255] = (255, 255, 255)   
         blueprint[edges == 255] = (44, 62, 80)          
         
-    # 4. TITLE BLOCK & LABELS OVERLAYS
+    # 4. TECHNICAL MAP BOXES & CARD OVERLAYS
     cv2.rectangle(blueprint, (5, 5), (w - 5, h - 5), (255, 255, 255), 2)
     tb_w, tb_h = 240, 90
     cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (30, 39, 46), -1)
@@ -134,17 +140,17 @@ with st.spinner("⚡ Running spatial matrix optimizations..."):
         cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (120, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
     if res_count > 0:
         cv2.putText(blueprint, "PROPOSED RESIDENTIAL URBAN MATRIX", (60, h - 130), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
-    if np.sum(smooth_green > 100) > 0:
+    if green_pixels > 0:
         cv2.putText(blueprint, "URBAN AGRICULTURE AND GREEN BELT", (60, h // 2 + 60), cv2.FONT_HERSHEY_SIMPLEX, 0.36, (44, 62, 80), 1, cv2.LINE_AA)
 
 # =========================================================================
-# REAL-TIME COMPACT DATA MATRIX DASHBOARD PANELS
+# REAL-TIME LIVE DATA ANALYSIS COMMAND CENTER METRICS
 # =========================================================================
 cols = st.columns(4)
 metrics = [
     (f"{int(res_count * 4 * density_mod):,}", "Planned Dwellings"),
     (f"{int(comm_count * density_mod)} Blocks", "Commercial Hubs"),
-    (f"{int((np.sum(smooth_green > 100) / (h * w)) * 100)}%", "Greenbelt Coverage"),
+    (f"{int((green_pixels / (h * w)) * 100)}%", "Greenbelt Coverage"),
     (f"{int(np.sum(edges == 255) / 100) if len(edge_x) > 0 else 0} km", "Primary Highway Route")
 ]
 
@@ -154,18 +160,18 @@ for i, (val, lbl) in enumerate(metrics):
 st.markdown("<br>", unsafe_allow_html=True)
 
 # =========================================================================
-# FIXED: SIDE-BY-SIDE PLATFORM DISPLAY VIEWGRID USING VALID INDEXES
+# SIDE-BY-SIDE PRESENTATION COLUMNS GRIDVIEW
 # =========================================================================
 ui_cols = st.columns(2)
 
 with ui_cols[0]:
-    st.subheader("🛰 *Input Satellite Imagery Capture*")
+    st.subheader("🛰️ Input Satellite Imagery Capture")
     st.image(img_resized, use_container_width=True)
-
+    
 with ui_cols[1]:
-    st.subheader("🗺 *Synthesized Regional Development Layout*")
+    st.subheader("🗺️ Synthesized Regional Development Layout")
     st.image(blueprint, use_container_width=True)
-
+    
 # FILE EXPORTER MANAGER CONTROL UTILITY LINK
 final_output_image = Image.fromarray(blueprint)
 final_output_image.save("gis_regional_masterplan.jpg")
