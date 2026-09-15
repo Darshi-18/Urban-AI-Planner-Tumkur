@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. INJECT SLEEK DARK COMMAND MATRIX UI
+# 2. INJECT SLEEK MODERN DARK ARCHITECTURAL CORE THEME
 st.markdown("""
     <style>
     .main { background-color: #0b132b; color: #edf2f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -32,14 +32,15 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🏙️ UrbanAI Studio™ — GIS Master Planning Suite")
+st.title("🏗️ UrbanAI Studio™ — GIS Master Planning Suite")
 st.markdown("`[SYSTEM PROTOCOL: MASTER REGIONAL DEVELOPMENT OVERLAY - MUDIGERE-BUGUDANAHALLI CORRIDOR]`")
 st.markdown("---")
 
 # =========================================================================
 # SYSTEM CONTROL SIDEBAR CONTROLLERS
 # =========================================================================
-st.sidebar.header("📡 GIS ANALYSIS CONFIGURATION")
+st.sidebar.header("🎛️ ZONING DESIGN PROFILE")
+st.sidebar.markdown("Fine-tune generative urban density metrics below:")
 
 sector_profile = st.sidebar.selectbox("Active Planning Preset", ["Suburban Neighborhood Matrix", "High-Density Core Matrix", "Eco-Fringe Settlement"])
 preservation_val = st.sidebar.slider("Eco Preservation Threshold", 80, 140, 110, 5)
@@ -148,16 +149,12 @@ if uploaded_file is not None:
             blueprint[road_core == 255] = (255, 255, 255)   # Crisp double white lines
             blueprint[edges == 255] = (44, 62, 80)          # Clean interior divider center gap
             
-        # 4. INJECT EXAMINER GRADE MAP TITLE BLOCK & DATA CORRIDOR LABELS
-        # Draw a clean technical box border around the entire canvas layout area
+        # 4. INJECT EXAMINER GRADE MAP TITLE BLOCK
         cv2.rectangle(blueprint, (5, 5), (w - 5, h - 5), (255, 255, 255), 2)
-        
-        # Draw the standard professional Title Block box card in the lower right corner
         tb_w, tb_h = 280, 100
         cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (30, 39, 46), -1)
         cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (255, 255, 255), 2)
         
-        # Inject structural text definitions inside the card
         cv2.putText(blueprint, "MUDIGERE-BUGUDANAHALLI", (w - tb_w + 12, h - tb_h + 25), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
         cv2.putText(blueprint, "REGIONAL DEVELOPMENT PLAN", (w - tb_w + 12, h - tb_h + 45), 
@@ -174,6 +171,11 @@ if uploaded_file is not None:
         cv2.line(blueprint, (40, 26), (44, 32), (255, 255, 255), 2)
         cv2.putText(blueprint, "N", (35, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (255, 255, 255), 1, cv2.LINE_AA)
 
-        # FIXED ANNOTATION PIPELINE: Guaranteed parameter strings to prevent OpenCV execution signature crashes
-        if comm_count > 0:
-            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (120, 60))
+    # =========================================================================
+    # REAL-TIME LIVE DATA ANALYSIS COMMAND CENTER METRICS
+    # =========================================================================
+    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+    
+    green_ratio = int((np.sum(smooth_green > 100) / (h * w)) * 100)
+    infrastructure_km = int(np.sum(edges == 255) / 100) if len(edge_x) > 0 else 0
+    
