@@ -176,4 +176,4 @@ if uploaded_file is not None:
 
         # FIXED ANNOTATION PIPELINE: Guaranteed parameter strings to prevent OpenCV execution signature crashes
         if comm_count > 0:
-            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (120, 60), 
+            cv2.putText(blueprint, "HIGH-DENSITY COMMERCIAL CORRIDOR", (120, 60))
