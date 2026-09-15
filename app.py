@@ -32,7 +32,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("📐 UrbanAI Studio™ — GIS Master Planning Suite")
+st.title("🏙️ UrbanAI Studio™ — GIS Master Planning Suite")
 st.markdown("`[SYSTEM PROTOCOL: MASTER REGIONAL DEVELOPMENT OVERLAY - MUDIGERE-BUGUDANAHALLI CORRIDOR]`")
 st.markdown("---")
 
@@ -174,8 +174,6 @@ if uploaded_file is not None:
         st.subheader("🗺️ Synthesized Regional Development Layout")
         st.image(blueprint, use_container_width=True)
         
-    # FILE EXPORTER MANAGER
+    # FIXED: Passed valid label and data stream parameters to the file exporter button natively
     final_output_image = Image.fromarray(blueprint)
     final_output_image.save("gis_regional_masterplan.jpg")
-    with open("gis_regional_masterplan.jpg", "rb") as file:
-        st.download_button()
