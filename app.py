@@ -57,125 +57,128 @@ st.sidebar.markdown("⬜ **Platinum Double Lines:** Primary Arterial Transit Hig
 # =========================================================================
 uploaded_file = st.file_uploader("UPLOAD GEOGRAPHIC AERIAL FOOTPRINT GRAPHIC (PNG/JPG)", type=["png", "jpg", "jpeg"])
 
-if uploaded_file is not None:
-    raw_img = Image.open(uploaded_file).convert("RGB")
-    img_np = np.array(raw_img)
-    
-    # Scale canvas dimensions dynamically to guarantee fluid loading speeds
-    orig_h, orig_w, _ = img_np.shape
-    scale_factor = 600 / max(orig_h, orig_w)
-    new_h, new_w = int(orig_h * scale_factor), int(orig_w * scale_factor)
-    
-    img_resized = cv2.resize(img_np, (new_w, new_h), interpolation=cv2.INTER_LANCZOS4)
-    h, w, c = img_resized.shape
-    
-    # Core Image Signal Filtering Processing Pipeline
-    gray = cv2.cvtColor(img_resized, cv2.COLOR_RGB2GRAY)
-    blurred = cv2.GaussianBlur(gray, (13, 13), 0)
-    
-    # Extract clean transportation network traces
-    edges = cv2.Canny(blurred, transit_val, transit_val * 2.2)
-    edge_y, edge_x = np.where(edges == 255)
-    
-    # Isolate vegetative agricultural land vs open buildable spaces natively
-    _, green_mask = cv2.threshold(blurred, preservation_val, 255, cv2.THRESH_BINARY_INV)
-    green_mask = cv2.dilate(green_mask, np.ones((11, 11), np.uint8), iterations=1)
-    smooth_green = cv2.GaussianBlur(green_mask, (35, 35), 0)
-    
-    # =========================================================================
-    # HIGH-FIDELITY CONTINUOUS SOLID POLYGON ZONING ENGINE
-    # =========================================================================
-    with st.spinner("⚡ Running continuous polygon spatial zoning..."):
-        blueprint = np.zeros((h, w, 3), dtype=np.uint8)
-        
-        # 1. Base Layer: Default all plain open spaces to Solid Slate Blue (Residential Neighborhoods)
-        blueprint[:] = (52, 73, 94) # Slate Blue
-        
-        # 2. Layer 2: Draw Continuous, Smooth Eco-Preservation Belts (Solid Emerald Green)
-        blueprint[smooth_green > 100] = (34, 112, 63) # Solid Emerald Green
-        
-        # 3. Layer 3: Trace Commercial Zones along the active highway channels (Solid Deep Purple)
-        if len(edge_x) > 0:
-            # Create a proximity buffer mask around the main road paths
-            dist_transform = cv2.distanceTransform(255 - edges, cv2.DIST_L2, 5)
-            commercial_buffer = dist_transform < (45 + (45 - transit_val) * 0.5)
-            
-            # Map Commercial Zones strictly inside buildable areas near the highway
-            commercial_indices = (commercial_buffer) & (smooth_green <= 100)
-            blueprint[commercial_indices] = (108, 92, 231) # Deep Purple
-            
-            # 4. Layer 4: Superimpose High-Contrast Double-Line Arterial Highways
-            road_casing = cv2.dilate(edges, np.ones((9, 9), np.uint8), iterations=1)
-            blueprint[road_casing == 255] = (44, 62, 80)    # Deep slate outer road casing
-            road_core = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
-            blueprint[road_core == 255] = (255, 255, 255)   # White lanes
-            blueprint[edges == 255] = (44, 62, 80)          # Center median gap
-            
-        # 5. INJECT TECHNICAL BOX BOUNDARIES & ENGINEERING TITLE BLOCK CARD
-        cv2.rectangle(blueprint, (5, 5), (w - 5, h - 5), (255, 255, 255), 2)
-        tb_w, tb_h = 260, 95
-        cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (30, 39, 46), -1)
-        cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (255, 255, 255), 2)
-        
-        cv2.putText(blueprint, "TUMKUR REGIONAL PLAN", (w - tb_w + 12, h - tb_h + 24), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(blueprint, "CONTINUOUS POLYGON MASTER PLAN", (w - tb_w + 12, h - tb_h + 44), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(blueprint, "SCALE: 1:20,000", (w - tb_w + 12, h - tb_h + 65), cv2.FONT_HERSHEY_SIMPLEX, 0.34, (180, 180, 180), 1, cv2.LINE_AA)
-        cv2.putText(blueprint, "DEVELOPMENT LAYER: CAD v6.0", (w - tb_w + 12, h - tb_h + 82), cv2.FONT_HERSHEY_SIMPLEX, 0.32, (0, 240, 255), 1, cv2.LINE_AA)
-        
-        # Compass
-        cv2.circle(blueprint, (35, 35), 15, (255, 255, 255), 1)
-        cv2.line(blueprint, (35, 42), (35, 20), (255, 255, 255), 2)
-        cv2.line(blueprint, (35, 20), (31, 25), (255, 255, 255), 2)
-        cv2.line(blueprint, (35, 20), (39, 25), (255, 255, 255), 2)
-        cv2.putText(blueprint, "N", (31, 14), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
+# FIXED INNER LAYERING GUARD CLAUSE: Stops compilation errors if no image is present
+if uploaded_file is None:
+    st.info("ℹ️ System standby. Please upload geographic satellite terrain imagery to initiate the planning pipeline.")
+    st.stop()
 
-        # Dynamic annotation text labels placed cleanly over the continuous fields
-        cv2.putText(blueprint, "COMMERCIAL ZONE", (w // 3, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(blueprint, "PLANNED RESIDENTIAL SECTOR", (50, h - 130), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(blueprint, "ECO-PRESERVATION SECTOR", (40, h // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+# =========================================================================
+# CONTINUOUS SOLID POLYGON CONTINUITY COMPUTATION CORE
+# =========================================================================
+raw_img = Image.open(uploaded_file).convert("RGB")
+img_np = np.array(raw_img)
 
-    # =========================================================================
-    # REAL-TIME LIVE DATA ANALYSIS COMMAND CENTER METRICS
-    # =========================================================================
-    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+# Scale canvas dimensions dynamically to guarantee fluid loading speeds
+orig_h, orig_w, _ = img_np.shape
+scale_factor = 600 / max(orig_h, orig_w)
+new_h, new_w = int(orig_h * scale_factor), int(orig_w * scale_factor)
+
+img_resized = cv2.resize(img_np, (new_w, new_h), interpolation=cv2.INTER_LANCZOS4)
+h, w, c = img_resized.shape
+
+# Core Image Signal Filtering Processing Pipeline
+gray = cv2.cvtColor(img_resized, cv2.COLOR_RGB2GRAY)
+blurred = cv2.GaussianBlur(gray, (13, 13), 0)
+
+# Extract clean transportation network traces
+edges = cv2.Canny(blurred, transit_val, transit_val * 2.2)
+edge_y, edge_x = np.where(edges == 255)
+
+# Isolate vegetative agricultural land vs open buildable spaces natively
+_, green_mask = cv2.threshold(blurred, preservation_val, 255, cv2.THRESH_BINARY_INV)
+green_mask = cv2.dilate(green_mask, np.ones((11, 11), np.uint8), iterations=1)
+smooth_green = cv2.GaussianBlur(green_mask, (35, 35), 0)
+
+with st.spinner("⚡ Running continuous polygon spatial zoning..."):
+    blueprint = np.zeros((h, w, 3), dtype=np.uint8)
     
-    green_ratio = int((np.sum(smooth_green > 100) / (h * w)) * 100)
-    res_ratio = int((np.sum(blueprint == (52, 73, 94)) / (h * w * 3)) * 100)
-    comm_ratio = int((np.sum(blueprint == (108, 92, 231)) / (h * w * 3)) * 100)
-    infrastructure_km = int(np.sum(edges == 255) / 100) if len(edge_x) > 0 else 0
+    # 1. Base Layer: Default all plain open spaces to Solid Slate Blue (Residential Neighborhoods)
+    blueprint[:] = (52, 73, 94) # Slate Blue
     
-    with m_col1:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{res_ratio}%</div><div class='metric-label'>🏡 Residential Area</div></div>", unsafe_allow_html=True)
-    with m_col2:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{comm_ratio}%</div><div class='metric-label'>🏢 Commercial Hubs</div></div>", unsafe_allow_html=True)
-    with m_col3:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{green_ratio}%</div><div class='metric-label'>🌿 Greenbelt Coverage</div></div>", unsafe_allow_html=True)
-    with m_col4:
-        st.markdown(f"<div class='metric-panel'><div class='metric-value'>{infrastructure_km} km</div><div class='metric-label'>🛣️ Primary Highway Route</div></div>", unsafe_allow_html=True)
+    # 2. Layer 2: Draw Continuous, Smooth Eco-Preservation Belts (Solid Emerald Green)
+    blueprint[smooth_green > 100] = (34, 112, 63) # Solid Emerald Green
+    
+    # 3. Layer 3: Trace Commercial Zones along the active highway channels (Solid Deep Purple)
+    if len(edge_x) > 0:
+        # Create a proximity buffer mask around the main road paths
+        dist_transform = cv2.distanceTransform(255 - edges, cv2.DIST_L2, 5)
+        commercial_buffer = dist_transform < (45 + (45 - transit_val) * 0.5)
         
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # =========================================================================
-    # SIDE-BY-SIDE PRESENTATION COLUMNS VIEWGRID
-    # =========================================================================
-    ui_col1, ui_col2 = st.columns(2)
-    
-    with ui_col1:
-        st.subheader("🛰️ Input Satellite Imagery Capture")
-        st.image(img_resized, use_container_width=True)
+        # Map Commercial Zones strictly inside buildable areas near the highway
+        commercial_indices = (commercial_buffer) & (smooth_green <= 100)
+        blueprint[commercial_indices] = (108, 92, 231) # Deep Purple
         
-    with ui_col2:
-        st.subheader("🗺️ Synthesized CAD Land-Use Overlay")
-        st.image(blueprint, use_container_width=True)
+        # 4. Layer 4: Superimpose High-Contrast Double-Line Arterial Highways
+        road_casing = cv2.dilate(edges, np.ones((9, 9), np.uint8), iterations=1)
+        blueprint[road_casing == 255] = (44, 62, 80)    # Deep slate outer road casing
+        road_core = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
+        blueprint[road_core == 255] = (255, 255, 255)   # White lanes
+        blueprint[edges == 255] = (44, 62, 80)          # Center median gap
         
-    # FILE EXPORTER MANAGER
-    final_output_image = Image.fromarray(blueprint)
-    final_output_image.save("gis_regional_masterplan.jpg")
-    with open("gis_regional_masterplan.jpg", "rb") as file:
-        st.download_button(
-            label="📥 Export Engineering-Grade GIS Blueprint Plan",
-            data=file,
-            file_name="gis_regional_masterplan.jpg",
-            mime="image/jpeg"
-        )
-else:
+    # 5. INJECT TECHNICAL BOX BOUNDARIES & ENGINEERING TITLE BLOCK CARD
+    cv2.rectangle(blueprint, (5, 5), (w - 5, h - 5), (255, 255, 255), 2)
+    tb_w, tb_h = 260, 95
+    cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (30, 39, 46), -1)
+    cv2.rectangle(blueprint, (w - tb_w, h - tb_h), (w - 5, h - 5), (255, 255, 255), 2)
+    
+    cv2.putText(blueprint, "TUMKUR REGIONAL PLAN", (w - tb_w + 12, h - tb_h + 24), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "CONTINUOUS POLYGON MASTER PLAN", (w - tb_w + 12, h - tb_h + 44), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "SCALE: 1:20,000", (w - tb_w + 12, h - tb_h + 65), cv2.FONT_HERSHEY_SIMPLEX, 0.34, (180, 180, 180), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "DEVELOPMENT LAYER: CAD v6.0", (w - tb_w + 12, h - tb_h + 82), cv2.FONT_HERSHEY_SIMPLEX, 0.32, (0, 240, 255), 1, cv2.LINE_AA)
+    
+    # Compass
+    cv2.circle(blueprint, (35, 35), 15, (255, 255, 255), 1)
+    cv2.line(blueprint, (35, 42), (35, 20), (255, 255, 255), 2)
+    cv2.line(blueprint, (35, 20), (31, 25), (255, 255, 255), 2)
+    cv2.line(blueprint, (35, 20), (39, 25), (255, 255, 255), 2)
+    cv2.putText(blueprint, "N", (31, 14), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
+
+    # Dynamic text labels
+    cv2.putText(blueprint, "COMMERCIAL ZONE", (w // 3, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "PLANNED RESIDENTIAL SECTOR", (50, h - 130), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "ECO-PRESERVATION SECTOR", (40, h // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+
+# =========================================================================
+# REAL-TIME LIVE DATA ANALYSIS COMMAND CENTER METRICS
+# =========================================================================
+m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+
+green_ratio = int((np.sum(smooth_green > 100) / (h * w)) * 100)
+res_ratio = int((np.sum(blueprint == (52, 73, 94)) / (h * w * 3)) * 100)
+comm_ratio = int((np.sum(blueprint == (108, 92, 231)) / (h * w * 3)) * 100)
+infrastructure_km = int(np.sum(edges == 255) / 100) if len(edge_x) > 0 else 0
+
+with m_col1:
+    st.markdown(f"<div class='metric-panel'><div class='metric-value'>{res_ratio}%</div><div class='metric-label'>🏡 Residential Area</div></div>", unsafe_allow_html=True)
+with m_col2:
+    st.markdown(f"<div class='metric-panel'><div class='metric-value'>{comm_ratio}%</div><div class='metric-label'>🏢 Commercial Hubs</div></div>", unsafe_allow_html=True)
+with m_col3:
+    st.markdown(f"<div class='metric-panel'><div class='metric-value'>{green_ratio}%</div><div class='metric-label'>🌿 Greenbelt Coverage</div></div>", unsafe_allow_html=True)
+with m_col4:
+    st.markdown(f"<div class='metric-panel'><div class='metric-value'>{infrastructure_km} km</div><div class='metric-label'>🛣️ Primary Highway Route</div></div>", unsafe_allow_html=True)
+    
+st.markdown("<br>", unsafe_allow_html=True)
+
+# =========================================================================
+# SIDE-BY-SIDE PRESENTATION COLUMNS VIEWGRID
+# =========================================================================
+ui_col1, ui_col2 = st.columns(2)
+
+with ui_col1:
+    st.subheader("🛰️ Input Satellite Imagery Capture")
+    st.image(img_resized, use_container_width=True)
+    
+with ui_col2:
+    st.subheader("🗺️ Synthesized CAD Land-Use Overlay")
+    st.image(blueprint, use_container_width=True)
+    
+# FILE EXPORTER MANAGER
+final_output_image = Image.fromarray(blueprint)
+final_output_image.save("gis_regional_masterplan.jpg")
+with open("gis_regional_masterplan.jpg", "rb") as file:
+    st.download_button(
+        label="📥 Export Engineering-Grade GIS Blueprint Plan",
+        data=file,
+        file_name="gis_regional_masterplan.jpg",
+        mime="image/jpeg"
+    )
