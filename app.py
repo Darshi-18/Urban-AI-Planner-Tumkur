@@ -57,7 +57,6 @@ st.sidebar.markdown("⬜ **Platinum Double Lines:** Primary Arterial Transit Hig
 # =========================================================================
 uploaded_file = st.file_uploader("UPLOAD GEOGRAPHIC AERIAL FOOTPRINT GRAPHIC (PNG/JPG)", type=["png", "jpg", "jpeg"])
 
-# FIXED INNER LAYERING GUARD CLAUSE: Stops compilation errors if no image is present
 if uploaded_file is None:
     st.info("ℹ️ System standby. Please upload geographic satellite terrain imagery to initiate the planning pipeline.")
     st.stop()
@@ -102,13 +101,12 @@ with st.spinner("⚡ Running continuous polygon spatial zoning..."):
     if len(edge_x) > 0:
         # Create a proximity buffer mask around the main road paths
         dist_transform = cv2.distanceTransform(255 - edges, cv2.DIST_L2, 5)
-        commercial_buffer = dist_transform < (45 + (45 - transit_val) * 0.5)
+        commercial_buffer = dist_transform < (65 + (45 - transit_val) * 0.5)
         
-        # Map Commercial Zones strictly inside buildable areas near the highway
-        commercial_indices = (commercial_buffer) & (smooth_green <= 100)
-        blueprint[commercial_indices] = (108, 92, 231) # Deep Purple
+        # FIXED LOGIC: Removed the forest restriction block so purple commercial nodes render over vegetation layers cleanly
+        blueprint[commercial_buffer] = (108, 92, 231) # Deep Purple Commercial Fill
         
-        # 4. Layer 4: Superimpose High-Contrast Double-Line Arterial Highways
+        # 4. Layer 4: Superimpose High-Contrast Double-Line Arterial Highways on top of everything
         road_casing = cv2.dilate(edges, np.ones((9, 9), np.uint8), iterations=1)
         blueprint[road_casing == 255] = (44, 62, 80)    # Deep slate outer road casing
         road_core = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
@@ -134,7 +132,7 @@ with st.spinner("⚡ Running continuous polygon spatial zoning..."):
     cv2.putText(blueprint, "N", (31, 14), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
 
     # Dynamic text labels
-    cv2.putText(blueprint, "COMMERCIAL ZONE", (w // 3, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "COMMERCIAL CORE HUB", (w // 3, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
     cv2.putText(blueprint, "PLANNED RESIDENTIAL SECTOR", (50, h - 130), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
     cv2.putText(blueprint, "ECO-PRESERVATION SECTOR", (40, h // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
 
@@ -144,6 +142,8 @@ with st.spinner("⚡ Running continuous polygon spatial zoning..."):
 m_col1, m_col2, m_col3, m_col4 = st.columns(4)
 
 green_ratio = int((np.sum(smooth_green > 100) / (h * w)) * 100)
+
+# Calculate area coverage metrics precisely using NumPy segment splits
 res_ratio = int((np.sum(blueprint == (52, 73, 94)) / (h * w * 3)) * 100)
 comm_ratio = int((np.sum(blueprint == (108, 92, 231)) / (h * w * 3)) * 100)
 infrastructure_km = int(np.sum(edges == 255) / 100) if len(edge_x) > 0 else 0
