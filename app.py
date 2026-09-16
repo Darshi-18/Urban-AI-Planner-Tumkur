@@ -41,7 +41,7 @@ st.markdown("---")
 # =========================================================================
 st.sidebar.header("📡 CAD ZONING CONFIGURATION")
 
-sector_profile = st.sidebar.selectbox("Active Density Target", ["Suburban Neighborhood Matrix", "High-Density Commercial Core", "Eco-Fringe Settlement"])
+sector_profile = st.sidebar.selectbox("Active Planning Preset", ["Suburban Neighborhood Matrix", "High-Density Commercial Core", "Eco-Fringe Settlement"])
 preservation_val = st.sidebar.slider("Eco Preservation Threshold", 80, 140, 110, 5)
 transit_val = st.sidebar.slider("Transit Extraction Sensitivity", 20, 80, 45, 5)
 
@@ -99,7 +99,6 @@ with st.spinner("⚡ Running continuous polygon spatial zoning..."):
     cv2.rectangle(blueprint, (w // 2 - dynamic_green_width // 2, 0), (w // 2 + dynamic_green_width // 2, h), (34, 112, 63), -1)
     
     # 3. Layer 3: Trace Commercial Zones along the active highway channels (Solid Deep Purple Partition)
-    # Renders purple ribbons on the sides that adjust cleanly based on sliders
     cv2.rectangle(blueprint, (0, 0), (w // 2 - dynamic_green_width // 2, dynamic_comm_height), (108, 92, 231), -1)
     cv2.rectangle(blueprint, (w // 2 + dynamic_green_width // 2, 0), (w, dynamic_comm_height), (108, 92, 231), -1)
     
@@ -166,17 +165,18 @@ st.markdown("<br>", unsafe_allow_html=True)
 ui_col1, ui_col2 = st.columns(2)
 
 with ui_col1:
-    st.subheader("🛰️ Input Satellite Imagery Capture")
+    st.subheader("Input Satellite Imagery Capture")
     st.image(img_resized, use_container_width=True)
     
 with ui_col2:
     st.subheader("🗺️ Synthesized CAD Land-Use Overlay")
     st.image(blueprint, use_container_width=True)
     
-# FILE EXPORTER MANAGER
+# FIXED ANCHOR PARENTHESIS: Fully enclosed structural export function safely
 final_output_image = Image.fromarray(blueprint)
 final_output_image.save("gis_regional_masterplan.jpg")
 with open("gis_regional_masterplan.jpg", "rb") as file:
     st.download_button(
         label="📥 Export Engineering-Grade GIS Blueprint Plan",
         data=file,
+        file_name="gis_regional_masterplan.jpg",mime="image/jpeg")
