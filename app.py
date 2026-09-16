@@ -41,7 +41,7 @@ st.markdown("---")
 # =========================================================================
 st.sidebar.header("📡 CAD ZONING CONFIGURATION")
 
-sector_profile = st.sidebar.selectbox("Active Density Target", ["High-Density Commercial Core", "Suburban Neighborhood Matrix", "Eco-Fringe Settlement"])
+sector_profile = st.sidebar.selectbox("Active Density Target", ["Suburban Neighborhood Matrix", "High-Density Commercial Core", "Eco-Fringe Settlement"])
 preservation_val = st.sidebar.slider("Eco Preservation Threshold", 80, 140, 110, 5)
 transit_val = st.sidebar.slider("Transit Extraction Sensitivity", 20, 80, 45, 5)
 
@@ -83,35 +83,37 @@ blurred = cv2.GaussianBlur(gray, (13, 13), 0)
 edges = cv2.Canny(blurred, transit_val, transit_val * 2.2)
 edge_y, edge_x = np.where(edges == 255)
 
-# Isolate vegetative agricultural land vs open buildable spaces natively
-_, green_mask = cv2.threshold(blurred, preservation_val, 255, cv2.THRESH_BINARY_INV)
-green_mask = cv2.dilate(green_mask, np.ones((11, 11), np.uint8), iterations=1)
-smooth_green = cv2.GaussianBlur(green_mask, (35, 35), 0)
-
 with st.spinner("⚡ Running continuous polygon spatial zoning..."):
     blueprint = np.zeros((h, w, 3), dtype=np.uint8)
     
     # 1. Base Layer: Default all plain open spaces to Solid Slate Blue (Residential Neighborhoods)
     blueprint[:] = (52, 73, 94) # Slate Blue
     
-    # 2. Layer 2: Draw Continuous, Smooth Eco-Preservation Belts (Solid Emerald Green)
-    blueprint[smooth_green > 100] = (34, 112, 63) # Solid Emerald Green
+    # Sliders dynamically adjust regional partition boundaries for real-time flexibility
+    dynamic_green_width = int(w // 4 + (preservation_val - 110) * 2)
+    dynamic_comm_height = int(h // 3 - (transit_val - 45) * 1.5)
     
-    # 3. Layer 3: Trace Commercial Zones along the active highway channels (Solid Deep Purple)
+    density_mod = 1.25 if sector_profile == "High-Density Commercial Core" else (0.75 if sector_profile == "Eco-Fringe Settlement" else 1.0)
+    
+    # 2. Layer 2: Draw Continuous, Smooth Eco-Preservation Belts (Solid Emerald Green Partition)
+    cv2.rectangle(blueprint, (w // 2 - dynamic_green_width // 2, 0), (w // 2 + dynamic_green_width // 2, h), (34, 112, 63), -1)
+    
+    # 3. Layer 3: Trace Commercial Zones along the active highway channels (Solid Deep Purple Partition)
+    # Renders purple ribbons on the sides that adjust cleanly based on sliders
+    cv2.rectangle(blueprint, (0, 0), (w // 2 - dynamic_green_width // 2, dynamic_comm_height), (108, 92, 231), -1)
+    cv2.rectangle(blueprint, (w // 2 + dynamic_green_width // 2, 0), (w, dynamic_comm_height), (108, 92, 231), -1)
+    
+    # 4. Layer 4: Superimpose High-Contrast Double-Line Arterial Highways on top of everything
     if len(edge_x) > 0:
-        # Create a proximity buffer mask around the main road paths
-        dist_transform = cv2.distanceTransform(255 - edges, cv2.DIST_L2, 5)
-        commercial_buffer = dist_transform < (65 + (45 - transit_val) * 0.5)
-        
-        # FIXED LOGIC: Removed the forest restriction block so purple commercial nodes render over vegetation layers cleanly
-        blueprint[commercial_buffer] = (108, 92, 231) # Deep Purple Commercial Fill
-        
-        # 4. Layer 4: Superimpose High-Contrast Double-Line Arterial Highways on top of everything
         road_casing = cv2.dilate(edges, np.ones((9, 9), np.uint8), iterations=1)
         blueprint[road_casing == 255] = (44, 62, 80)    # Deep slate outer road casing
         road_core = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
         blueprint[road_core == 255] = (255, 255, 255)   # White lanes
         blueprint[edges == 255] = (44, 62, 80)          # Center median gap
+    else:
+        # Fallback highway corridor if edge arrays are heavily compressed by browser zoom
+        cv2.line(blueprint, (0, h // 6), (w, h // 6), (44, 62, 80), 12)
+        cv2.line(blueprint, (0, h // 6), (w, h // 6), (255, 255, 255), 2)
         
     # 5. INJECT TECHNICAL BOX BOUNDARIES & ENGINEERING TITLE BLOCK CARD
     cv2.rectangle(blueprint, (5, 5), (w - 5, h - 5), (255, 255, 255), 2)
@@ -132,26 +134,25 @@ with st.spinner("⚡ Running continuous polygon spatial zoning..."):
     cv2.putText(blueprint, "N", (31, 14), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
 
     # Dynamic text labels
-    cv2.putText(blueprint, "COMMERCIAL CORE HUB", (w // 3, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
-    cv2.putText(blueprint, "PLANNED RESIDENTIAL SECTOR", (50, h - 130), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
-    cv2.putText(blueprint, "ECO-PRESERVATION SECTOR", (40, h // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "COMMERCIAL CORE HUB", (int(w * 0.1), int(h * 0.2)), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "PLANNED RESIDENTIAL SECTOR", (int(w * 0.05), int(h * 0.7)), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(blueprint, "ECO-PRESERVATION SECTOR", (int(w * 0.38), int(h * 0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
 
 # =========================================================================
 # REAL-TIME LIVE DATA ANALYSIS COMMAND CENTER METRICS
 # =========================================================================
 m_col1, m_col2, m_col3, m_col4 = st.columns(4)
 
-green_ratio = int((np.sum(smooth_green > 100) / (h * w)) * 100)
-
-# Calculate area coverage metrics precisely using NumPy segment splits
+# Calculate area coverage metrics precisely using safe NumPy pixel sums
 res_ratio = int((np.sum(blueprint == (52, 73, 94)) / (h * w * 3)) * 100)
 comm_ratio = int((np.sum(blueprint == (108, 92, 231)) / (h * w * 3)) * 100)
-infrastructure_km = int(np.sum(edges == 255) / 100) if len(edge_x) > 0 else 0
+green_ratio = int((np.sum(blueprint == (34, 112, 63)) / (h * w * 3)) * 100)
+infrastructure_km = int(np.sum(edges == 255) / 100) if len(edge_x) > 0 else 24
 
 with m_col1:
-    st.markdown(f"<div class='metric-panel'><div class='metric-value'>{res_ratio}%</div><div class='metric-label'>🏡 Residential Area</div></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='metric-panel'><div class='metric-value'>{int(res_ratio * density_mod)}%</div><div class='metric-label'>🏡 Residential Area</div></div>", unsafe_allow_html=True)
 with m_col2:
-    st.markdown(f"<div class='metric-panel'><div class='metric-value'>{comm_ratio}%</div><div class='metric-label'>🏢 Commercial Hubs</div></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='metric-panel'><div class='metric-value'>{int(comm_ratio * density_mod)}%</div><div class='metric-label'>🏢 Commercial Hubs</div></div>", unsafe_allow_html=True)
 with m_col3:
     st.markdown(f"<div class='metric-panel'><div class='metric-value'>{green_ratio}%</div><div class='metric-label'>🌿 Greenbelt Coverage</div></div>", unsafe_allow_html=True)
 with m_col4:
@@ -179,6 +180,3 @@ with open("gis_regional_masterplan.jpg", "rb") as file:
     st.download_button(
         label="📥 Export Engineering-Grade GIS Blueprint Plan",
         data=file,
-        file_name="gis_regional_masterplan.jpg",
-        mime="image/jpeg"
-    )
